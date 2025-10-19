@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complaint History</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 230px;
+      height: 100%;
+      background-color: white;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+      padding-top: 10px;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 14px 20px;
+      text-decoration: none;
+      color: #000;
+      border-bottom: 1px solid #eee;
+      font-size: 16px;
+    }
+
+    .sidebar a:hover {
+      background-color: #f0f0f0;
+    }
+
+    .main {
+      margin-left: 250px;
+      padding: 20px;
+    }
+
+    .top-right {
+      text-align: right;
+      margin-bottom: 20px;
+    }
+
+    .main h2 {
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .status-btn {
+      background-color: #1e90ff;
+      color: white;
+      padding: 5px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: default;
+    }
+
+    .footer {
+      margin-top: 50px;
+      font-size: 14px;
+      text-align: center;
+      color: #333;
+    }
+
+    .complaint-card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .complaint-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .complaint-header h3 {
+      margin: 0;
+      color: #333;
+    }
+
+    .date {
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    .complaint-description {
+      margin-bottom: 15px;
+      color: #444;
+    }
+
+    .complaint-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-badge {
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+
+    .status-pending {
+      background-color: #ffd700;
+      color: #000;
+    }
+
+    .status-in_progress {
+      background-color: #1e90ff;
+      color: white;
+    }
+
+    .status-resolved {
+      background-color: #32cd32;
+      color: white;
+    }
+
+    .new-notification {
+      background-color: #ff4444;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.8em;
+      animation: pulse 2s infinite;
+    }
+
+    .escalation-history {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+    }
+
+    .escalation-history h4 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+
+    .escalation-history ul {
+      margin: 0;
+      padding-left: 20px;
+      color: #666;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    .no-complaints {
+      text-align: center;
+      padding: 30px;
+      color: #666;
+      font-style: italic;
+    }
+
+    .no-complaints p {
+      margin: 10px 0;
+    }
+
+    .submit-complaint-btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #001fbb;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+
+    .submit-complaint-btn:hover {
+      background-color: #00008b;
+    }
+
+    .error-message {
+      background-color: #ffebee;
+      color: #c62828;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 10px 0;
+      text-align: center;
+    }
+
+    .retry-btn {
+      margin-top: 10px;
+      padding: 8px 16px;
+      background-color: #001fbb;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .retry-btn:hover {
+      background-color: #00008b;
+    }
+
+    .complaint-timeline {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+
+    .complaint-timeline h4 {
+      margin: 0 0 15px 0;
+      color: #333;
+    }
+
+    .complaint-timeline ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .timeline-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .timeline-item:last-child {
+      border-bottom: none;
+    }
+
+    .timeline-date {
+      color: #666;
+      font-size: 0.9em;
+      min-width: 150px;
+    }
+
+    .timeline-message {
+      flex-grow: 1;
+      color: #333;
+      margin: 0 15px;
+    }
+
+    .timeline-status {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.8em;
+      font-weight: bold;
+    }
+
+    .sidebar-logo {
+      width: 100px;
+      margin: 10px auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <img src="images/clglogo.png" alt="Logo" class="sidebar-logo">
+    <a href="user dashboard.html">Dashboard</a>
+    <a href="register complaint.html">Register Complaint</a>
+    <a href="complaints history.html">Complaints History</a>
+    <a href="logout.html">Logout</a>
+  </div>
+
+    
+
+       <div class="main-content">
+        <h2>Complaints History</h2>
+        <button onclick="loadComplaints()" class="retry-btn" style="margin-bottom:10px;">Manual Refresh</button>
+        <div id="complaintsList">
+            <!-- Complaints will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        // Check if user is logged in
+        const user = JSON.parse(localStorage.getItem('user'));
+        console.log('User session data:', user);
+        
+        if (!user || !user.id) {
+            console.error('No user found in session');
+            alert('Please login to view your complaints');
+            window.location.href = 'register2.html';
+            throw new Error('No user found in session');
+        }
+
+        function formatStatus(status, currentLevel) {
+            switch(status) {
+                case 'pending':
+                    return `Pending with ${currentLevel}`;
+                case 'in_progress':
+                    return `In Progress with ${currentLevel}`;
+                case 'resolved':
+                    return `Resolved by ${currentLevel}`;
+                default:
+                    return status;
+            }
+        }
+
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'pending': return 'status-pending';
+                case 'in_progress': return 'status-in_progress';
+                case 'resolved': return 'status-resolved';
+                default: return 'status-pending';
+            }
+        }
+
+        function loadComplaints() {
+            const complaintsList = document.getElementById('complaintsList');
+            complaintsList.innerHTML = '<div class="loading">Loading complaints...</div>';
+
+            console.log('Fetching complaints for user_id:', user.id);
+            fetch(`http://localhost:3000/user/complaints?user_id=${user.id}`)
+                .then(response => {
+                    console.log('API Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(complaints => {
+                    console.log('Received complaints data:', complaints);
+
+                    if (!complaints || complaints.length === 0) {
+                        console.log('No complaints found for user');
+                        complaintsList.innerHTML = `
+                            <div class="no-complaints">
+                                <p>No complaints found</p>
+                                <p>You haven't submitted any complaints yet.</p>
+                                <a href="register complaint.html" class="submit-complaint-btn">Submit a Complaint</a>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    complaintsList.innerHTML = '';
+                    complaints.forEach((complaint, index) => {
+                        const card = document.createElement('div');
+                        card.className = 'complaint-card';
+                        
+                        try {
+                            // Parse escalation history
+                            const escalationHistory = complaint.escalation_history ? JSON.parse(complaint.escalation_history) : [];
+                            const lastEscalation = escalationHistory[escalationHistory.length - 1];
+                            
+                            // Create status message
+                            const statusMessage = formatStatus(complaint.status, complaint.current_level);
+                            
+                            card.innerHTML = `
+                                <div class="complaint-header">
+                                    <h3 class="complaint-title">${complaint.title}</h3>
+                                    <span class="complaint-date">${new Date(complaint.created_at).toLocaleString()}</span>
+                                </div>
+                                <div class="complaint-description">${complaint.description}</div>
+                                <div class="complaint-status">
+                                    <span class="status-badge ${getStatusBadgeClass(complaint.status)}">${statusMessage}</span>
+                                    ${complaint.notification_sent ? '<span class="new-notification">New Update</span>' : ''}
+                                </div>
+                                ${escalationHistory.length > 0 ? `
+                                    <div class="escalation-history">
+                                        <h4>Complaint History</h4>
+                                        <ul>
+                                            ${escalationHistory.map(entry => `
+                                                <li>
+                                                    ${new Date(entry.timestamp).toLocaleString()} - 
+                                                    ${entry.message}
+                                                </li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>
+                                ` : ''}
+                            `;
+                        } catch (error) {
+                            console.error('Error processing complaint:', error);
+                            card.innerHTML = `
+                                <div class="error-message">
+                                    Error loading complaint details. Please try refreshing the page.
+                                </div>
+                            `;
+                        }
+                        complaintsList.appendChild(card);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    complaintsList.innerHTML = `
+                        <div class="error-message">
+                            <p>Failed to load complaints. Please check your internet connection and try again.</p>
+                            <button onclick="loadComplaints()" class="retry-btn">Retry</button>
+                        </div>
+                    `;
+                });
+        }
+
+        // Load complaints on page load
+        loadComplaints();
+
+        // Refresh complaints every 30 seconds
+        const refreshInterval = setInterval(loadComplaints, 30000);
+
+        // Cleanup interval on page unload
+        window.addEventListener('beforeunload', () => {
+            clearInterval(refreshInterval);
+        });
+    </script>
+
+    <div class="footer">
+      <p>Contact address</p>
+      <p>Email us at: <a href="mailto:complaints@students.edu.in">complaints@students.edu.in</a></p>
+      
+    </div>
+  </div>
+
+</body>
+</html>

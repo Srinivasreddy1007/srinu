@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mentor Dashboard - Grievance System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f8f9fa;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 250px;
+            background: #fff;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            padding-top: 20px;
+        }
+
+        .sidebar-header {
+            padding: 0 20px;
+            margin-bottom: 30px;
+        }
+
+        .sidebar-header h3 {
+            color: #333;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .nav-link {
+            color: #333;
+            padding: 12px 20px;
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: #f0f0f0;
+            border-left: 3px solid #00c6ff;
+            color: #00c6ff;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+
+        .complaint-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .complaint-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .complaint-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .complaint-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .complaint-description {
+            color: #666;
+            margin-bottom: 20px;
+            white-space: pre-line;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-in_progress {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-resolved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-resolve {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .btn-resolve:hover {
+            background: #218838;
+        }
+
+        .btn-escalate {
+            background: #ffc107;
+            color: #000;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .btn-escalate:hover {
+            background: #e0a800;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>Mentor Dashboard</h3>
+            <p>Welcome, <span id="adminName">Loading...</span></p>
+        </div>
+        <nav>
+            <a href="#" class="nav-link active">Complaints</a>
+            <a href="#" class="nav-link">Profile</a>
+            <a href="home.html" class="nav-link">Logout</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <h2 class="mb-4">Complaints List</h2>
+        <div id="complaintsList">
+            <!-- Complaints will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        // Check if admin is logged in
+        const admin = JSON.parse(localStorage.getItem('admin'));
+        if (!admin || admin.type !== 'mentor') {
+            window.location.href = 'admin-login.html';
+        }
+
+        document.getElementById('adminName').textContent = admin.username;
+
+        // Function to format date
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleString();
+        }
+
+        // Function to get status badge class
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'pending': return 'status-pending';
+                case 'in_progress': return 'status-in_progress';
+                case 'resolved': return 'status-resolved';
+                default: return 'status-pending';
+            }
+        }
+
+        // Function to handle resolve action
+        async function handleResolve(complaintId) {
+            try {
+                const response = await fetch(`http://localhost:3000/admin/complaints/${complaintId}/status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: 'resolved',
+                        current_level: 'mentor',
+                        message: 'Complaint resolved by mentor'
+                    })
+                });
+                const data = await response.json();
+                console.log('Resolve response:', data); // Debug log
+                if (response.ok) {
+                    // Update the status badge immediately
+                    const statusBadge = document.querySelector(`.complaint-card:nth-child(${complaintId}) .status-badge`);
+                    if (statusBadge) {
+                        statusBadge.className = 'status-badge status-resolved';
+                        statusBadge.textContent = 'resolved';
+                    }
+                    
+                    // Disable the action buttons and show resolved text
+                    const actionButtons = document.querySelector(`.complaint-card:nth-child(${complaintId}) .action-buttons`);
+                    if (actionButtons) {
+                        actionButtons.innerHTML = '<span class="text-success fw-bold">Resolved</span>';
+                    }
+                    
+                    // Reload the complaints list to ensure all changes are reflected
+                    await loadComplaints();
+                    alert('Complaint resolved successfully');
+                } else {
+                    alert(data.error || 'Failed to resolve complaint');
+                }
+            } catch (error) {
+                console.error('Error resolving complaint:', error);
+                alert('Error resolving complaint. Please try again.');
+            }
+        }
+
+        // Function to handle escalate action
+        async function handleEscalate(complaintId) {
+            try {
+                const response = await fetch(`http://localhost:3000/admin/complaints/${complaintId}/status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: 'in_progress',
+                        current_level: 'principal',
+                        message: 'Complaint escalated to principal'
+                    })
+                });
+                const data = await response.json();
+                console.log('Escalate response:', data); // Debug log
+                if (response.ok) {
+                    alert('Complaint escalated successfully');
+                    loadComplaints(); // Reload complaints list
+                } else {
+                    alert(data.error || 'Failed to escalate complaint');
+                }
+            } catch (error) {
+                console.error('Error escalating complaint:', error);
+                alert('Error escalating complaint. Please try again.');
+            }
+        }
+
+        // Function to load complaints
+        async function loadComplaints() {
+            try {
+                const response = await fetch('http://localhost:3000/admin/complaints?type=mentor');
+                const complaints = await response.json();
+                console.log('Loaded complaints:', complaints); // Debug log
+
+                const complaintsList = document.getElementById('complaintsList');
+                complaintsList.innerHTML = '';
+
+                if (complaints.length === 0) {
+                    complaintsList.innerHTML = '<p>No complaints found.</p>';
+                    return;
+                }
+
+                complaints.forEach(complaint => {
+                    const card = document.createElement('div');
+                    card.className = 'complaint-card';
+                    card.innerHTML = `
+                        <div class="complaint-header">
+                            <h3 class="complaint-title">${complaint.title}</h3>
+                            <span class="complaint-date">${formatDate(complaint.created_at)}</span>
+                        </div>
+                        <div class="complaint-description">${complaint.description}</div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="status-badge ${getStatusBadgeClass(complaint.status)}">${complaint.status}</span>
+                            <div class="action-buttons">
+                                ${complaint.status === 'resolved' 
+                                    ? '<span class="text-success fw-bold">Resolved</span>'
+                                    : `
+                                        <button class="btn-resolve" onclick="handleResolve(${complaint.id})">Resolve</button>
+                                        <button class="btn-escalate" onclick="handleEscalate(${complaint.id})">Escalate to Principal</button>
+                                    `
+                                }
+                            </div>
+                        </div>
+                    `;
+                    complaintsList.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error loading complaints:', error);
+                alert('Error loading complaints. Please try again.');
+            }
+        }
+
+        // Load complaints when page loads
+        document.addEventListener('DOMContentLoaded', loadComplaints);
+
+        // Refresh complaints every 30 seconds
+        setInterval(loadComplaints, 30000);
+    </script>
+</body>
+</html> 

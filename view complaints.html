@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Complaints</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        .navbar {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+        }
+
+        .complaints-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .table {
+            margin-top: 20px;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+
+        .status-pending {
+            background-color: #ffd700;
+            color: #000;
+        }
+
+        .status-in_progress {
+            background-color: #1e90ff;
+            color: white;
+        }
+
+        .status-resolved {
+            background-color: #32cd32;
+            color: white;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+        }
+
+        .sidebar-logo {
+            width: 100px;
+            margin: 10px auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">Grievance Portal</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="home.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="view complaints.html">View Complaints</a></li>
+                    <li class="nav-item"><a class="nav-link" href="admin-login.html">Admin Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container complaints-container">
+        <h2 class="text-center mb-4">Complaints List</h2>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Current Level</th>
+                        <th>Created At</th>
+                        <th>Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody id="complaintsTableBody">
+                    <!-- Complaints will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="mb-0">Contact us: complaints@edu.in | Student Affairs Office</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Function to format date
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleString();
+        }
+
+        // Function to get status badge class
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'pending': return 'status-pending';
+                case 'in_progress': return 'status-in_progress';
+                case 'resolved': return 'status-resolved';
+                default: return 'status-pending';
+            }
+        }
+
+        // Function to load complaints
+        async function loadComplaints() {
+            try {
+                const userId = localStorage.getItem('userId');
+                console.log('Loaded userId from localStorage:', userId); // Debug log
+                if (!userId) {
+                    alert('Please log in to view complaints');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                const response = await fetch(`http://localhost:3000/user/complaints?user_id=${userId}`);
+                const complaints = await response.json();
+                console.log('Fetched complaints:', complaints); // Debug log
+
+                const tableBody = document.getElementById('complaintsTableBody');
+                tableBody.innerHTML = '';
+
+                if (complaints.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center">No complaints found. <a href="register complaint.html">Submit a new complaint</a></td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                complaints.forEach(complaint => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${complaint.id}</td>
+                        <td>${complaint.title}</td>
+                        <td>${complaint.description}</td>
+                        <td><span class="status-badge ${getStatusBadgeClass(complaint.status)}">${complaint.status}</span></td>
+                        <td>${complaint.current_level}</td>
+                        <td>${formatDate(complaint.created_at)}</td>
+                        <td>${formatDate(complaint.last_updated)}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error loading complaints:', error);
+                alert('Error loading complaints. Please try again.');
+            }
+        }
+
+        // Load complaints when page loads
+        document.addEventListener('DOMContentLoaded', loadComplaints);
+
+        // Refresh complaints every 30 seconds
+        setInterval(loadComplaints, 30000);
+
+        console.log(localStorage.getItem('user'));
+
+        async function handleResolve(complaintId) {
+            try {
+                const response = await fetch(`http://localhost:3000/admin/complaints/${complaintId}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        status: 'resolved',
+                        current_level: 'mentor', // or 'principal'/'university'
+                        message: 'Complaint resolved'
+                    })
+                });
+                const data = await response.json();
+                console.log('Resolve response:', data);
+                if (response.ok) {
+                    await loadComplaints();
+                    alert('Complaint resolved successfully');
+                } else {
+                    alert(data.error || 'Failed to resolve complaint');
+                }
+            } catch (error) {
+                console.error('Error resolving complaint:', error);
+                alert('Error resolving complaint. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>

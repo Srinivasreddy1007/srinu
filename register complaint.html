@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register Complaint</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 230px;
+      height: 100%;
+      background-color: white;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+      padding-top: 10px;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 14px 20px;
+      text-decoration: none;
+      color: #000;
+      border-bottom: 1px solid #eee;
+      font-size: 16px;
+    }
+
+    .sidebar a:hover {
+      background-color: #f0f0f0;
+    }
+
+    .main {
+      margin-left: 250px;
+      padding: 20px;
+    }
+
+    .top-right {
+      text-align: right;
+      margin-bottom: 20px;
+    }
+
+    .form-container {
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      padding: 30px;
+      border-radius: 10px;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    .form-container h2 {
+      color: #8B0000;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .form-group textarea {
+      height: 80px;
+      resize: none;
+    }
+
+    .submit-btn {
+      background-color: #001fbb;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .submit-btn:hover {
+      background-color: #00008b;
+    }
+
+    .footer {
+      margin-top: 50px;
+      font-size: 14px;
+      text-align: center;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <img src="c:\Users\srini\OneDrive\Pictures\clglogo.png" alt="Logo" style="width: 100px; margin: 10px auto; display: block;">
+    <a href="user dashboard.html">Dashboard</a>
+    <a href="register complaint.html">Register Complaint</a>
+    <a href="complaints history.html">Complaints History</a>
+    <a href="logout.html">Logout</a>
+  </div>
+
+  
+
+    <div class="form-container">
+      <h2>Register your complaint</h2>
+      <form>
+        <div class="form-group">
+          <input type="text" placeholder="Enter your name" name="fullname" required>
+          <input type="text" placeholder="Enter your Hall.no" name="Hall.no" required>
+        </div>
+
+        <div class="form-group">
+          <select name="BlockS">
+            <option value="SDDPA">SDDPA</option>
+            <option value="MAIN BLOCK">MAIN BLOCK</option>
+            <option value="SAI BALAJI">SAI BALAJI</option>
+          </select>
+          <input type="text" placeholder="Enter Area name" name="area" required>
+        </div>
+
+        <div class="form-group">
+          <select name="complaint">
+            <option value="">--select--</option>
+            <option value="Hostel">Hostel</option>
+            <option value="Electricity">Electricity</option>
+            <option value="Academics">Academics</option>
+            <option value="Facilities">Facilities</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <textarea placeholder="Describe the issue" name="issue" required></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn">Submit</button>
+      </form>
+    </div>
+
+    <div class="footer">
+      <p>Contact address</p>
+      <p>Email us at: <a href="mailto:complaints@students.edu.in">vcomplaintsstudents.edu.in</a></p>
+    </div>
+  </div>
+
+  <script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Get the logged in user from localStorage
+      const user = JSON.parse(localStorage.getItem('user'));
+      console.log('Current user:', user);
+      if (!user) {
+        alert('Please login first');
+        window.location.href = 'register2.html';
+        return;
+      }
+
+      // Validate form data
+      const complaintType = this.querySelector('[name="complaint"]').value;
+      if (!complaintType) {
+        alert('Please select a complaint type');
+        return;
+      }
+
+      // Get form data
+      const formData = {
+        user_id: user.id,
+        title: complaintType,
+        description: `Name: ${this.querySelector('[name="fullname"]').value}
+Hall No: ${this.querySelector('[name="Hall.no"]').value}
+Block: ${this.querySelector('[name="BlockS"]').value}
+Area: ${this.querySelector('[name="area"]').value}
+Issue: ${this.querySelector('[name="issue"]').value}`
+      };
+      console.log('Submitting form data:', formData);
+
+      // Show loading state
+      const submitButton = this.querySelector('button[type="submit"]');
+      const originalButtonText = submitButton.textContent;
+      submitButton.disabled = true;
+      submitButton.textContent = 'Submitting...';
+
+      // Send complaint to server
+      fetch('/submit-complaint', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => {
+        console.log('Server response status:', response.status);
+        if (!response.ok) {
+          return response.json().then(data => {
+            console.error('Server error response:', data);
+            throw new Error(data.error || 'Failed to submit complaint');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Success response:', data);
+        alert('Complaint submitted successfully!');
+        this.reset();
+      })
+      .catch(error => {
+        console.error('Error details:', error);
+        alert(error.message || 'Failed to submit complaint. Please try again.');
+      })
+      .finally(() => {
+        // Reset button state
+        submitButton.disabled = false;
+        submitButton.textContent = originalButtonText;
+      });
+    });
+  </script>
+</body>
+</html>

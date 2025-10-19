@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Student Grievance Management System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #ff7eb3, #ff758c);
+            color: #fff;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        nav {
+            background: #6a11cb;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+        }
+
+        .hero-section {
+            text-align: center;
+            padding: 100px 20px;
+        }
+
+        .btn-custom {
+            background: #ff5722;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            transition: 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            background: #ff784e;
+        }
+
+        .info-section {
+            padding: 50px 20px;
+            background: #ffffff;
+            color: #333;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">Grievance Portal</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="home.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="view complaints.html">View Complaints</a></li>
+                    <li class="nav-item"><a class="nav-link" href="admin-login.html">Admin Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <h1 class="display-4 fw-bold">Welcome to the Student Grievance Management System</h1>
+        <p class="lead mt-3">Easily report and track your grievances with transparency and efficiency.</p>
+        <a href="register complaint.html" class="btn btn-custom mt-4">Get Started</a>
+    </section>
+
+    <!-- Info Section -->
+    <div class="container info-section">
+        <h2 class="text-center fw-bold mb-4">How It Works</h2>
+        <div class="row">
+            <div class="col-md-4 text-center">
+                <h4>1. Register</h4>
+                <p>Sign up to access the platform and submit your grievances.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <h4>2. Submit Grievance</h4>
+                <p>Describe your issue clearly and track its progress in real-time.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <h4>3. Resolution</h4>
+                <p>Get timely updates and resolutions from the administration.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Student Grievance Management System. All rights reserved.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Check if user is logged in
+        document.addEventListener('DOMContentLoaded', function() {
+            const userId = localStorage.getItem('userId');
+            const username = localStorage.getItem('username');
+            
+            if (!userId || !username) {
+                // If not logged in, redirect to login page
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+
+</html>
